@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
 import os
-from mcp_server import list_contracts, get_contract_metadata, analyze_contract, chatbot_query
+from mcp_server import list_contracts, get_contract_metadata, analyze_contract
+from mcp_client_agent import get_agent_response
 
 st.set_page_config(page_title="Contract Intelligence Dashboard", layout="wide")
 
@@ -28,12 +29,9 @@ if prompt := st.sidebar.chat_input("Ask about contracts..."):
         st.sidebar.markdown(prompt)
 
     with st.sidebar.chat_message("assistant"):
-        # Use MCP tool for chatbot
-        if "list" in prompt.lower() or "how many" in prompt.lower():
-            response = f"There are {len(contracts)} contracts available: " + ", ".join(contracts)
-        else:
-            response = chatbot_query(prompt, selected_contract if selected_contract != "All Contracts" else None)
-
+        # Use MCP Agent for chatbot
+        with st.spinner("Agent is thinking..."):
+            response = get_agent_response(prompt, selected_contract)
         st.sidebar.markdown(response)
     st.session_state.messages.append({"role": "assistant", "content": response})
 
