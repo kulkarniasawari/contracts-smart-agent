@@ -40,11 +40,11 @@ def api_get_analysis(filename: str):
 
 class ChatRequest(BaseModel):
     query: str
-    context: str = None
+    history: list = None
 
 @app.post("/api/chat")
 def api_chat(request: ChatRequest):
-    response = get_agent_response(request.query, request.context)
+    response = get_agent_response(request.query, request.history)
     return {"response": response}
 
 if __name__ == "__main__":
