@@ -1,4 +1,12 @@
-from mcp_server import list_contracts, get_contract_metadata, analyze_contract, chatbot_query, get_contract_text
+import os
+import sys
+
+# Add the parent directory and mcp-tools directory to sys.path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(os.path.join(parent_dir, "mcp-tools"))
+
+from tools import list_contracts, get_contract_metadata, analyze_contract, chatbot_query, get_contract_text
 
 print("Listing contracts:")
 contracts = list_contracts()

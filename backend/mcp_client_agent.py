@@ -11,7 +11,7 @@ from langchain_community.chat_models import FakeListChatModel
 # MCP Server Parameters
 server_params = StdioServerParameters(
     command=sys.executable,
-    args=["mcp_server.py"],
+    args=[os.path.join(os.path.dirname(os.path.dirname(__file__)), "mcp-server", "mcp_server.py")],
     env=os.environ.copy()
 )
 
