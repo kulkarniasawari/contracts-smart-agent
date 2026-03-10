@@ -27,20 +27,29 @@ class MCPAgent:
             async with ClientSession(read, write) as session:
                 await session.initialize()
 
+                # Extract filename from query if present
+                filename_from_query = None
+                words = query.split()
+                for word in words:
+                    clean_word = word.strip("?,.!")
+                    if clean_word.lower().endswith(".pdf"):
+                        filename_from_query = clean_word
+                        break
+
+                # Determine which filename to use
+                filename = filename_from_query or (context if context and context != "All Contracts" else "contract_1.pdf")
+
                 # Check if it's a tool-related query
-                if "list" in query.lower() or "how many" in query.lower():
+                query_lower = query.lower()
+                if "list" in query_lower or "how many" in query_lower:
                     # Call MCP tool
                     result = await session.call_tool("list_contracts", {})
                     contracts = [c.text for c in result.content if hasattr(c, 'text')]
-                    # In a real agent, we'd pass this to the LLM
                     response = f"I've checked the server via MCP. There are {len(contracts)} contracts: {', '.join(contracts)}."
-                elif "metadata" in query.lower() or "tell me about" in query.lower():
-                    # Extract filename if possible, use context, else use default for demo
-                    filename = context if context and context != "All Contracts" else "contract_1.pdf"
+                elif any(word in query_lower for word in ["metadata", "tell me about", "details", "who is", "effective date", "amount", "client"]):
                     result = await session.call_tool("get_contract_metadata", {"filename": filename})
                     response = f"I've retrieved the metadata for {filename} via MCP: {result.content[0].text if result.content else 'No data'}"
-                elif "analyze" in query.lower():
-                    filename = context if context and context != "All Contracts" else "contract_1.pdf"
+                elif any(word in query_lower for word in ["analyze", "analysis", "summarize", "summary"]):
                     result = await session.call_tool("analyze_contract", {"filename": filename})
                     response = f"Agent Analysis via MCP for {filename}:\n{result.content[0].text if result.content else 'No data'}"
                 else:
