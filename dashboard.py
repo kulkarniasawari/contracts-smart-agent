@@ -47,6 +47,8 @@ if selected_contract == "All Contracts":
         data.append(metadata)
 
     df = pd.DataFrame(data)
+    if 'amount' in df.columns:
+        df = df.drop(columns=['amount'])
     st.table(df)
 
 else:
@@ -71,4 +73,3 @@ else:
     st.info(f"Contract Name: {metadata['name']}")
     st.info(f"Effective Date: {metadata['effective_date']}")
     st.info(f"Client: {metadata['client']}")
-    st.info(f"Amount: {metadata['amount']}")
