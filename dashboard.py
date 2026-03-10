@@ -57,7 +57,8 @@ if prompt:
     with st.sidebar.chat_message("assistant"):
         # Use MCP Agent for chatbot
         with st.spinner("Agent is thinking..."):
-            response = get_agent_response(prompt, selected_contract)
+            # Pass the message history to the agent for "free flowing" conversation
+            response = get_agent_response(prompt, st.session_state.messages[:-1])
         st.sidebar.markdown(response)
     st.session_state.messages.append({"role": "assistant", "content": response})
 

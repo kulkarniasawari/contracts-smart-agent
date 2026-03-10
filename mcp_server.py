@@ -64,6 +64,18 @@ def analyze_contract(filename: str):
     return analysis
 
 @mcp.tool()
+def get_contract_text(filename: str):
+    """Retrieve the full text content of a contract PDF."""
+    filepath = os.path.join(CONTRACTS_DIR, filename)
+    if not os.path.exists(filepath):
+        return {"error": "File not found"}
+
+    loader = PyPDFLoader(filepath)
+    docs = loader.load()
+    text = "\n".join([doc.page_content for doc in docs])
+    return text
+
+@mcp.tool()
 def chatbot_query(query: str, selected_contract: str = None):
     """Answer predefined queries using LangChain."""
     responses = [
