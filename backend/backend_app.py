@@ -1,6 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from mcp_server import list_contracts, get_contract_metadata, analyze_contract
+import os
+import sys
+
+# Add the parent directory and mcp-tools directory to sys.path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(os.path.join(parent_dir, "mcp-tools"))
+
+import tools
 from mcp_client_agent import get_agent_response
 from pydantic import BaseModel
 import uvicorn
@@ -18,24 +26,24 @@ app.add_middleware(
 
 @app.get("/api/contracts")
 def api_list_contracts():
-    return list_contracts()
+    return tools.list_contracts()
 
 @app.get("/api/contracts/all/metadata")
 def api_get_all_metadata():
-    contracts = list_contracts()
+    contracts = tools.list_contracts()
     data = []
     for c in contracts:
-        metadata = get_contract_metadata(c)
+        metadata = tools.get_contract_metadata(c)
         data.append(metadata)
     return data
 
 @app.get("/api/contracts/{filename}/metadata")
 def api_get_metadata(filename: str):
-    return get_contract_metadata(filename)
+    return tools.get_contract_metadata(filename)
 
 @app.get("/api/contracts/{filename}/analyze")
 def api_get_analysis(filename: str):
-    result = analyze_contract(filename)
+    result = tools.analyze_contract(filename)
     return {"analysis": result}
 
 class ChatRequest(BaseModel):

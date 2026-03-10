@@ -1,7 +1,14 @@
 import streamlit as st
 import pandas as pd
 import os
-from mcp_server import list_contracts, get_contract_metadata, analyze_contract
+import sys
+
+# Add directories to sys.path to import modules from new locations
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.join(current_dir, "mcp-tools"))
+sys.path.append(os.path.join(current_dir, "backend"))
+
+import tools
 from mcp_client_agent import get_agent_response
 
 st.set_page_config(page_title="Contract Intelligence Dashboard", layout="wide")
@@ -10,7 +17,7 @@ st.title("📄 Contract Intelligence Dashboard")
 
 # Sidebar for navigation
 st.sidebar.title("Navigation")
-contracts = list_contracts()
+contracts = tools.list_contracts()
 selected_contract = st.sidebar.selectbox("Select a Contract", ["All Contracts"] + contracts)
 
 # Chatbot in Sidebar
@@ -68,7 +75,7 @@ if selected_contract == "All Contracts":
     st.header("Overview of All Contracts")
     data = []
     for c in contracts:
-        metadata = get_contract_metadata(c)
+        metadata = tools.get_contract_metadata(c)
         data.append(metadata)
 
     df = pd.DataFrame(data)
@@ -81,7 +88,7 @@ else:
 
     col1, col2 = st.columns(2)
 
-    metadata = get_contract_metadata(selected_contract)
+    metadata = tools.get_contract_metadata(selected_contract)
 
     with col1:
         st.subheader("Metadata")
@@ -89,7 +96,7 @@ else:
 
     with col2:
         st.subheader("Analysis")
-        analysis = analyze_contract(selected_contract)
+        analysis = tools.analyze_contract(selected_contract)
         st.write(analysis)
 
     st.divider()
