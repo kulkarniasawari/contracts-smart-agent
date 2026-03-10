@@ -16,6 +16,24 @@ selected_contract = st.sidebar.selectbox("Select a Contract", ["All Contracts"] 
 # Chatbot in Sidebar
 st.sidebar.divider()
 st.sidebar.subheader("Chatbot")
+
+# Predefined Questions
+predefined_questions = [
+    "Select a question...",
+    "How many contracts are currently managed?",
+    "List all the contracts available in the system.",
+    "What are the metadata details for contract_1.pdf?",
+    "Can you provide an analysis of contract_1.pdf?",
+    "Who is the client in contract_2.pdf?",
+    "What is the effective date of contract_2.pdf?",
+    "What is the total amount for contract_3.pdf?",
+    "Can you provide an analysis of contract_3.pdf?",
+    "Show me the metadata for contract_3.pdf.",
+    "Summarize the details of contract_2.pdf."
+]
+
+selected_question = st.sidebar.selectbox("General Questions", predefined_questions)
+
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -23,7 +41,15 @@ for message in st.session_state.messages:
     with st.sidebar.chat_message(message["role"]):
         st.sidebar.markdown(message["content"])
 
-if prompt := st.sidebar.chat_input("Ask about contracts..."):
+prompt = st.sidebar.chat_input("Ask about contracts...")
+
+# Handle predefined question selection
+if selected_question != "Select a question...":
+    # Check if this was the last question asked to avoid recursion/re-runs
+    if not st.session_state.messages or st.session_state.messages[-1]["content"] != selected_question:
+        prompt = selected_question
+
+if prompt:
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.sidebar.chat_message("user"):
         st.sidebar.markdown(prompt)
