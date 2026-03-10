@@ -1,0 +1,86 @@
+from mcp.server.fastmcp import FastMCP
+import os
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_core.prompts import PromptTemplate
+from langchain_community.llms.fake import FakeListLLM
+import json
+
+mcp = FastMCP("Contract Management Server")
+
+CONTRACTS_DIR = "contracts"
+
+@mcp.tool()
+def list_contracts():
+    """List all available contract PDF files."""
+    files = [f for f in os.listdir(CONTRACTS_DIR) if f.endswith(".pdf")]
+    return files
+
+@mcp.tool()
+def get_contract_metadata(filename: str):
+    """Extract metadata from a contract PDF using LangChain."""
+    filepath = os.path.join(CONTRACTS_DIR, filename)
+    if not os.path.exists(filepath):
+        return {"error": "File not found"}
+
+    loader = PyPDFLoader(filepath)
+    docs = loader.load()
+    text = "\n".join([doc.page_content for doc in docs])
+
+    # Simple extraction logic (in a real app, use an LLM with LangChain)
+    lines = text.split("\n")
+    metadata = {
+        "filename": filename,
+        "name": "Unknown",
+        "effective_date": "Unknown",
+        "client": "Unknown",
+        "amount": "Unknown"
+    }
+
+    for line in lines:
+        if "Contract Name:" in line:
+            metadata["name"] = line.split("Contract Name:")[1].strip()
+        elif "Effective Date:" in line:
+            metadata["effective_date"] = line.split("Effective Date:")[1].strip()
+        elif "Client:" in line:
+            metadata["client"] = line.split("Client:")[1].strip()
+        elif "Total Amount:" in line:
+            metadata["amount"] = line.split("Total Amount:")[1].strip()
+
+    return metadata
+
+@mcp.tool()
+def analyze_contract(filename: str):
+    """Provide a basic analysis of the contract."""
+    metadata = get_contract_metadata(filename)
+    if "error" in metadata:
+        return metadata
+
+    analysis = f"Analysis for {filename}:\n"
+    analysis += f"- The contract is with {metadata['client']}.\n"
+    analysis += f"- It became effective on {metadata['effective_date']}.\n"
+    analysis += f"- The total value is {metadata['amount']}.\n"
+    analysis += "- Purpose: " + ("Software related" if "Software" in metadata["name"] or "Cloud" in metadata["name"] else "General services")
+
+    return analysis
+
+@mcp.tool()
+def chatbot_query(query: str, selected_contract: str = None):
+    """Answer predefined queries using LangChain."""
+    responses = [
+        "I can help you with contract analysis.",
+        "The selected contract is a service agreement.",
+        "You can find the effective date in the metadata section.",
+        "This project uses MCP and LangChain for contract processing."
+    ]
+    fake_llm = FakeListLLM(responses=responses)
+
+    prompt = PromptTemplate.from_template("Answer the following query about contracts: {query}")
+
+    # Using LCEL (LangChain Expression Language)
+    chain = prompt | fake_llm
+    response = chain.invoke({"query": query})
+
+    return response
+
+if __name__ == "__main__":
+    mcp.run()
