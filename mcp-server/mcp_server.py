@@ -38,5 +38,10 @@ def chatbot_query(query: str, selected_contract: str = None):
     """Answer predefined queries using LangChain."""
     return tools.chatbot_query(query, selected_contract)
 
+@mcp.tool()
+def get_notifications():
+    """Retrieve all logged activities as notifications."""
+    return tools.get_notifications()
+
 if __name__ == "__main__":
     mcp.run()
