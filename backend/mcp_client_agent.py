@@ -6,7 +6,7 @@ from mcp.client.stdio import stdio_client
 from langchain_mcp_adapters.tools import load_mcp_tools
 from langgraph.prebuilt import create_react_agent
 from langchain_core.messages import HumanMessage, AIMessage
-from langchain_community.chat_models import FakeListChatModel
+from langchain_openai import ChatOpenAI
 
 # MCP Server Parameters
 server_params = StdioServerParameters(
@@ -17,25 +17,22 @@ server_params = StdioServerParameters(
 
 class MCPAgent:
     def __init__(self):
-        # We'll use a Fake Chat Model for demonstration, but it should support tool calling
-        # for a real agent. Since FakeListChatModel doesn't easily support tool calling,
-        # in a real scenario we'd use ChatOpenAI or similar.
-        # For this task, I will mock the agent's behavior if needed or use a more capable mock.
-        self.responses = [
-            "I'll check the available contracts for you.",
-            "I've found the contracts. There are 3 contracts: contract_1.pdf, contract_2.pdf, and contract_3.pdf.",
-            "Contract 1 is a Software License Agreement with Acme Corp, effective from 2024-01-01.",
-            "I can analyze any contract for you. Which one would you like to know more about?"
-        ]
-        # Note: Standard FakeListLLM doesn't support tool calling.
-        # For the sake of this exercise, I'll implement a simple manual routing that MIMICS a tool-using agent
-        # OR try to use a more advanced LangChain feature.
-        # Given the constraints, I will use the langchain-mcp-adapters to LOAD the tools,
-        # but since I don't have a real LLM with tool-calling capabilities,
-        # I'll provide a hybrid approach.
-        self.llm = FakeListChatModel(responses=self.responses)
+        # Verify if OPENAI_API_KEY is available
+        self.api_key = os.environ.get("OPENAI_API_KEY")
+        if not self.api_key:
+            print("WARNING: OPENAI_API_KEY not found in environment variables.")
+            print("Please set your OpenAI API key to use the real LLM agent.")
+
+        # Initialize the real LLM with ChatGPT model if key is available, else use a placeholder
+        if self.api_key:
+            self.llm = ChatOpenAI(model="gpt-4o", temperature=0, api_key=self.api_key)
+        else:
+            self.llm = None
 
     async def run_query(self, query: str, history: list = None):
+        if not self.llm:
+            return "Error: OPENAI_API_KEY is not set. Please provide a valid API key in your environment variables to use the real ChatGPT-based agent."
+
         if history is None:
             history = []
 
@@ -46,54 +43,18 @@ class MCPAgent:
                 # Load tools from MCP server
                 tools = await load_mcp_tools(session)
 
-                # Create the agent
-                # In a real environment with an LLM:
-                # agent_executor = create_react_agent(self.llm, tools)
-                # response = await agent_executor.ainvoke({"messages": history + [HumanMessage(content=query)]})
+                # Create the agent executor using the real LLM and MCP tools
+                agent_executor = create_react_agent(self.llm, tools)
 
-                # Since we are in a mock environment without a tool-calling LLM,
-                # I will simulate the tool calling logic for now,
-                # but the infrastructure for real tools is now integrated via langchain_mcp_adapters.
+                # Invoke the agent with query and message history
+                # We expect response to be a dict containing "messages"
+                result = await agent_executor.ainvoke({
+                    "messages": history + [HumanMessage(content=query)]
+                })
 
-                query_lower = query.lower()
-                response_text = ""
-
-                if "list" in query_lower or "how many" in query_lower:
-                    result = await session.call_tool("list_contracts", {})
-                    contracts = [c.text for c in result.content if hasattr(c, 'text')]
-                    response_text = f"I've checked the server via MCP. There are {len(contracts)} contracts: {', '.join(contracts)}."
-                elif "text" in query_lower or "read" in query_lower or "content" in query_lower:
-                    # Extract filename
-                    filename = "contract_1.pdf"
-                    for word in query.split():
-                        if word.strip("?,.!").endswith(".pdf"):
-                            filename = word.strip("?,.!")
-                            break
-                    result = await session.call_tool("get_contract_text", {"filename": filename})
-                    text = result.content[0].text if result.content else "No data"
-                    response_text = f"I've retrieved the text for {filename}:\n{text[:500]}..."
-                elif any(word in query_lower for word in ["metadata", "details", "who is", "effective date", "amount", "client"]):
-                    filename = "contract_1.pdf"
-                    for word in query.split():
-                        if word.strip("?,.!").endswith(".pdf"):
-                            filename = word.strip("?,.!")
-                            break
-                    result = await session.call_tool("get_contract_metadata", {"filename": filename})
-                    response_text = f"I've retrieved the metadata for {filename} via MCP: {result.content[0].text if result.content else 'No data'}"
-                elif any(word in query_lower for word in ["analyze", "analysis", "summarize", "summary"]):
-                    filename = "contract_1.pdf"
-                    for word in query.split():
-                        if word.strip("?,.!").endswith(".pdf"):
-                            filename = word.strip("?,.!")
-                            break
-                    result = await session.call_tool("analyze_contract", {"filename": filename})
-                    response_text = f"Agent Analysis via MCP for {filename}:\n{result.content[0].text if result.content else 'No data'}"
-                else:
-                    # Fallback to Mock LLM
-                    mock_resp = self.llm.invoke(history + [HumanMessage(content=query)])
-                    response_text = mock_resp.content
-
-                return response_text
+                # Extract the final response content from the agent's messages
+                final_message = result["messages"][-1]
+                return final_message.content
 
 def get_agent_response(query: str, history: list = None):
     """Sync wrapper for the async run_query"""
@@ -105,10 +66,13 @@ def get_agent_response(query: str, history: list = None):
         for msg in history:
             if msg["role"] == "user":
                 lc_history.append(HumanMessage(content=msg["content"]))
-            else:
+            elif msg["role"] == "assistant" or msg["role"] == "ai":
                 lc_history.append(AIMessage(content=msg["content"]))
 
-    return asyncio.run(agent.run_query(query, lc_history))
+    try:
+        return asyncio.run(agent.run_query(query, lc_history))
+    except Exception as e:
+        return f"An error occurred while communicating with the agent: {str(e)}"
 
 if __name__ == "__main__":
     # Test
