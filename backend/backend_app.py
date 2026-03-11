@@ -55,5 +55,9 @@ def api_chat(request: ChatRequest):
     response = get_agent_response(request.query, request.history)
     return {"response": response}
 
+@app.get("/api/notifications")
+def api_get_notifications():
+    return tools.get_notifications()
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

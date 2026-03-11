@@ -35,12 +35,14 @@ function App() {
   const [selectedMetadata, setSelectedMetadata] = useState<Metadata | null>(null);
   const [analysis, setAnalysis] = useState<string>("");
   const [messages, setMessages] = useState<Message[]>([]);
+  const [notifications, setNotifications] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchContracts();
+    fetchNotifications();
   }, []);
 
   useEffect(() => {
@@ -51,6 +53,7 @@ function App() {
     } else {
       fetchContractDetails(selectedContract);
     }
+    fetchNotifications();
   }, [selectedContract]);
 
   useEffect(() => {
@@ -91,6 +94,16 @@ function App() {
     }
   };
 
+  const fetchNotifications = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/notifications');
+      const data = await response.json();
+      setNotifications(data);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  };
+
   const handleSendMessage = async (query: string) => {
     if (!query || query === "Select a question...") return;
 
@@ -107,6 +120,7 @@ function App() {
       });
       const data = await response.json();
       setMessages([...newMessages, { role: 'assistant', content: data.response }]);
+      fetchNotifications();
     } catch (error) {
       console.error("Error sending message:", error);
     } finally {
@@ -165,6 +179,20 @@ function App() {
             onChange={(e) => setInputValue(e.target.value)}
           />
         </form>
+
+        <hr />
+        <h3>Notifications</h3>
+        <div className="notifications-list">
+          {notifications.length > 0 ? (
+            notifications.slice(-5).reverse().map((n, i) => (
+              <div key={i} className="notification-item">
+                <small>{n}</small>
+              </div>
+            ))
+          ) : (
+            <p className="no-notifications">No recent activity.</p>
+          )}
+        </div>
       </aside>
 
       <main className="main-content">

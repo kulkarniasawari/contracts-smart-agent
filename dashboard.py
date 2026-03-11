@@ -41,6 +41,17 @@ predefined_questions = [
 
 selected_question = st.sidebar.selectbox("General Questions", predefined_questions)
 
+# Notifications Section in Sidebar
+st.sidebar.divider()
+st.sidebar.subheader("Notifications")
+notifications = tools.get_notifications()
+if notifications:
+    # Display the last 5 notifications
+    for note in notifications[-5:][::-1]:
+        st.sidebar.caption(note)
+else:
+    st.sidebar.caption("No recent activity.")
+
 if "messages" not in st.session_state:
     st.session_state.messages = []
 

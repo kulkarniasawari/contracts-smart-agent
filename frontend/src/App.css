@@ -140,3 +140,33 @@ hr {
   padding: 15px;
   border-radius: 4px;
 }
+
+.notifications-list {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.notification-item {
+  border-bottom: 1px solid #eee;
+  padding: 5px 0;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-item small {
+  color: #666;
+  display: block;
+  line-height: 1.4;
+}
+
+.no-notifications {
+  font-size: 0.8em;
+  color: #999;
+  text-align: center;
+}
