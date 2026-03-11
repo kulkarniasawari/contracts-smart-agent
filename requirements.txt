@@ -1,0 +1,13 @@
+reportlab
+langchain
+langchain-community
+pypdf
+mcp
+langchain-mcp-adapters
+langgraph
+langchain-openai
+streamlit
+fastapi
+uvicorn
+pandas
+python-dotenv

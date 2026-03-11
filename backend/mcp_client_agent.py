@@ -1,12 +1,16 @@
 import asyncio
 import sys
 import os
+from dotenv import load_dotenv
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 from langchain_mcp_adapters.tools import load_mcp_tools
 from langgraph.prebuilt import create_react_agent
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_openai import ChatOpenAI
+
+# Load environment variables from .env file
+load_dotenv()
 
 # MCP Server Parameters
 server_params = StdioServerParameters(
