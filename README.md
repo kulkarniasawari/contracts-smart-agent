@@ -5,33 +5,40 @@ This project provides a dashboard to manage and analyze PDF contracts using a Mo
 ## Features
 - **Tabular Metadata**: View essential information like contract name, effective date, client, and amount in a table.
 - **Contract Selection**: Use the sidebar to select specific contracts for detailed analysis.
-- **MCP Server**: A Python-based MCP server that provides tools for contract processing.
-- **LangChain Integration**: Uses LangChain for PDF loading and a mock LLM for chatbot responses.
-- **Chatbot**: A built-in chatbot to answer predefined queries about the contracts.
+- **MCP Server**: A Python-based MCP server built with FastMCP that provides tools for contract processing.
+- **LangChain & LangGraph Integration**: Uses LangChain for PDF loading and LangGraph with ChatOpenAI (GPT-4o) for intelligent agent-based contract analysis.
+- **Chatbot**: A stateful, multi-turn chatbot that uses the MCP agent to answer complex queries about the contracts.
 - **Modern UI**: A React-based frontend with a FastAPI backend.
 
 ## Project Structure
+- `backend/`: Contains the FastAPI application (`backend_app.py`) and the MCP client agent (`mcp_client_agent.py`).
+- `mcp-server/`: Contains the FastMCP server implementation (`mcp_server.py`).
+- `mcp-tools/`: Centralized tool logic (`tools.py`) shared by the MCP server and Streamlit dashboard.
+- `frontend/`: React-based frontend dashboard (Vite project).
 - `contracts/`: Folder containing sample PDF contracts.
-- `mcp_server.py`: The MCP server implementation.
-- `mcp_client_agent.py`: Agent that communicates with the MCP server.
-- `backend_app.py`: FastAPI backend that exposes MCP tools as REST endpoints.
-- `frontend/`: React-based frontend dashboard.
-- `dashboard.py`: Legacy Streamlit-based dashboard.
-- `generate_contracts.py`: Utility to generate sample PDF files.
+- `tests/`: Test suites for verifying MCP tools and agent functionality.
+- `dashboard.py`: Streamlit-based dashboard.
+- `generate_contracts.py`: Utility to generate sample PDF files for testing.
 
 ## Setup Instructions
 
 1. **Install Python Dependencies**:
    ```bash
-   pip install reportlab langchain langchain-community langchain-core pypdf mcp fastapi uvicorn
+   pip install reportlab langchain langchain-community pypdf mcp langchain-mcp-adapters langgraph langchain-openai streamlit fastapi uvicorn pandas
    ```
 
-2. **Generate Sample Contracts**:
+2. **Set Environment Variables**:
+   Set your OpenAI API key to use the chatbot features:
+   ```bash
+   export OPENAI_API_KEY='your-api-key-here'
+   ```
+
+3. **Generate Sample Contracts**:
    ```bash
    python generate_contracts.py
    ```
 
-3. **Install Frontend Dependencies**:
+4. **Install Frontend Dependencies**:
    ```bash
    cd frontend
    npm install
@@ -44,7 +51,7 @@ To run the modern React-based dashboard, you need to start both the backend and 
 
 1. **Start the Backend**:
    ```bash
-   python backend_app.py
+   python backend/backend_app.py
    ```
    The backend will run on `http://localhost:8000`.
 
