@@ -24,14 +24,20 @@ This project provides a dashboard to manage and analyze PDF contracts using a Mo
 
 1. **Install Python Dependencies**:
    ```bash
-   pip install reportlab langchain langchain-community pypdf mcp langchain-mcp-adapters langgraph langchain-openai streamlit fastapi uvicorn pandas
+   pip install -r requirements.txt
    ```
 
 2. **Set Environment Variables**:
-   Set your OpenAI API key to use the chatbot features:
+   Set your OpenAI API key to use the chatbot features. You can do this by exporting it in your shell:
    ```bash
    export OPENAI_API_KEY='your-api-key-here'
    ```
+
+   Alternatively, you can create a `.env` file in the root directory:
+   ```bash
+   cp .env.example .env
+   ```
+   Then edit `.env` and replace `your_openai_api_key_here` with your actual API key.
 
 3. **Generate Sample Contracts**:
    ```bash
