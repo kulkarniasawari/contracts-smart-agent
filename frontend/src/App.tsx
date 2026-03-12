@@ -36,6 +36,7 @@ function App() {
   const [analysis, setAnalysis] = useState<string>("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [notifications, setNotifications] = useState<string[]>([]);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -180,24 +181,18 @@ function App() {
           />
         </form>
 
-        <hr />
-        <h3>Notifications</h3>
-        <div className="notifications-list">
-          {notifications.length > 0 ? (
-            notifications.slice(-5).reverse().map((n, i) => (
-              <div key={i} className="notification-item">
-                <small>{n}</small>
-              </div>
-            ))
-          ) : (
-            <p className="no-notifications">No recent activity.</p>
-          )}
-        </div>
       </aside>
 
       <main className="main-content">
-        <header>
+        <header className="dashboard-header">
           <h1>📄 Contract Intelligence Dashboard</h1>
+          <button
+            className="notification-bell"
+            onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+            aria-label="Toggle Notifications"
+          >
+            🔔
+          </button>
         </header>
 
         {selectedContract === "All Contracts" ? (
@@ -253,6 +248,24 @@ function App() {
           </section>
         )}
       </main>
+
+      <aside className={`notification-sidebar ${isNotificationOpen ? 'open' : ''}`}>
+        <div className="sidebar-header">
+          <h3>Notifications</h3>
+          <button className="close-btn" onClick={() => setIsNotificationOpen(false)}>&times;</button>
+        </div>
+        <div className="notifications-list-full">
+          {notifications.length > 0 ? (
+            notifications.slice().reverse().map((n, i) => (
+              <div key={i} className="notification-item">
+                <small>{n}</small>
+              </div>
+            ))
+          ) : (
+            <p className="no-notifications">No recent activity.</p>
+          )}
+        </div>
+      </aside>
     </div>
   )
 }
