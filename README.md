@@ -5,36 +5,76 @@ This project provides a dashboard to manage and analyze PDF contracts using a Mo
 ## Features
 - **Tabular Metadata**: View essential information like contract name, effective date, client, and amount in a table.
 - **Contract Selection**: Use the sidebar to select specific contracts for detailed analysis.
-- **MCP Server**: A Python-based MCP server that provides tools for contract processing.
-- **LangChain Integration**: Uses LangChain for PDF loading and a mock LLM for chatbot responses.
-- **Chatbot**: A built-in chatbot to answer predefined queries about the contracts.
+- **MCP Server**: A Python-based MCP server built with FastMCP that provides tools for contract processing.
+- **LangChain & LangGraph Integration**: Uses LangChain for PDF loading and LangGraph with ChatOpenAI (GPT-4o) for intelligent agent-based contract analysis.
+- **Chatbot**: A stateful, multi-turn chatbot that uses the MCP agent to answer complex queries about the contracts.
+- **Modern UI**: A React-based frontend with a FastAPI backend.
 
 ## Project Structure
+- `backend/`: Contains the FastAPI application (`backend_app.py`) and the MCP client agent (`mcp_client_agent.py`).
+- `mcp-server/`: Contains the FastMCP server implementation (`mcp_server.py`).
+- `mcp-tools/`: Centralized tool logic (`tools.py`) shared by the MCP server and Streamlit dashboard.
+- `frontend/`: React-based frontend dashboard (Vite project).
 - `contracts/`: Folder containing sample PDF contracts.
-- `mcp_server.py`: The MCP server implementation.
-- `dashboard.py`: The Streamlit-based dashboard.
-- `generate_contracts.py`: Utility to generate sample PDF files.
+- `tests/`: Test suites for verifying MCP tools and agent functionality.
+- `dashboard.py`: Streamlit-based dashboard.
+- `generate_contracts.py`: Utility to generate sample PDF files for testing.
 
-## Setup Instructions (VS Code)
+## Setup Instructions
 
-1. **Install Dependencies**:
-   Open a terminal in VS Code and run:
+1. **Install Python Dependencies**:
    ```bash
-   pip install reportlab langchain langchain-community langchain-core pypdf mcp streamlit
+   pip install -r requirements.txt
    ```
 
-2. **Generate Sample Contracts**:
-   Run the following command to create the `contracts/` directory and some sample PDFs:
+2. **Set Environment Variables**:
+   Set your OpenAI API key to use the chatbot features. You can do this by exporting it in your shell:
+   ```bash
+   export OPENAI_API_KEY='your-api-key-here'
+   ```
+
+   Alternatively, you can create a `.env` file in the root directory:
+   ```bash
+   cp .env.example .env
+   ```
+   Then edit `.env` and replace `your_openai_api_key_here` with your actual API key.
+
+3. **Generate Sample Contracts**:
    ```bash
    python generate_contracts.py
    ```
 
-3. **Run the Dashboard**:
-   Start the Streamlit dashboard by running:
+4. **Install Frontend Dependencies**:
    ```bash
-   streamlit run dashboard.py
+   cd frontend
+   npm install
+   cd ..
    ```
-   VS Code should automatically open a browser window with the dashboard. If not, follow the link provided in the terminal (usually `http://localhost:8501`).
+
+## Running the Application
+
+To run the modern React-based dashboard, you need to start both the backend and the frontend:
+
+1. **Start the Backend**:
+   ```bash
+   python backend/backend_app.py
+   ```
+   The backend will run on `http://localhost:8000`.
+
+2. **Start the Frontend**:
+   In a new terminal:
+   ```bash
+   cd frontend
+   npm run dev
+   ```
+   The frontend will be available at `http://localhost:5173`.
+
+### (Optional) Legacy Streamlit Dashboard
+If you still want to use the Streamlit dashboard:
+```bash
+pip install streamlit
+streamlit run dashboard.py
+```
 
 ## How to use
 - Select **"All Contracts"** from the sidebar to see a summary table of all PDF files in the `contracts/` folder.
@@ -42,9 +82,4 @@ This project provides a dashboard to manage and analyze PDF contracts using a Mo
 - Use the **Chatbot** in the sidebar to ask questions like "How many contracts are there?" or other general queries.
 
 ## Note on MCP Server
-The `mcp_server.py` can also be run independently or integrated into MCP-compatible clients like Claude Desktop. For simplicity, the dashboard imports these tools directly, but they are fully compatible with the MCP protocol.
-
-To run it standalone (for testing tools):
-```bash
-python mcp_server.py
-```
+The `mcp_server.py` can also be run independently or integrated into MCP-compatible clients like Claude Desktop. For simplicity, the dashboard (via `backend_app.py`) communicates with it using the MCP protocol via `mcp_client_agent.py`.

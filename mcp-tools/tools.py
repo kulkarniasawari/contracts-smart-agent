@@ -1,21 +1,15 @@
-from mcp.server.fastmcp import FastMCP
 import os
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.prompts import PromptTemplate
 from langchain_community.llms.fake import FakeListLLM
-import json
-
-mcp = FastMCP("Contract Management Server")
 
 CONTRACTS_DIR = "contracts"
 
-@mcp.tool()
 def list_contracts():
     """List all available contract PDF files."""
     files = [f for f in os.listdir(CONTRACTS_DIR) if f.endswith(".pdf")]
     return files
 
-@mcp.tool()
 def get_contract_metadata(filename: str):
     """Extract metadata from a contract PDF using LangChain."""
     filepath = os.path.join(CONTRACTS_DIR, filename)
@@ -48,7 +42,6 @@ def get_contract_metadata(filename: str):
 
     return metadata
 
-@mcp.tool()
 def analyze_contract(filename: str):
     """Provide a basic analysis of the contract."""
     metadata = get_contract_metadata(filename)
@@ -63,7 +56,17 @@ def analyze_contract(filename: str):
 
     return analysis
 
-@mcp.tool()
+def get_contract_text(filename: str):
+    """Retrieve the full text content of a contract PDF."""
+    filepath = os.path.join(CONTRACTS_DIR, filename)
+    if not os.path.exists(filepath):
+        return {"error": "File not found"}
+
+    loader = PyPDFLoader(filepath)
+    docs = loader.load()
+    text = "\n".join([doc.page_content for doc in docs])
+    return text
+
 def chatbot_query(query: str, selected_contract: str = None):
     """Answer predefined queries using LangChain."""
     responses = [
@@ -81,6 +84,3 @@ def chatbot_query(query: str, selected_contract: str = None):
     response = chain.invoke({"query": query})
 
     return response
-
-if __name__ == "__main__":
-    mcp.run()
